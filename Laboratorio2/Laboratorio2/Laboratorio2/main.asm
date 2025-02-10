@@ -8,7 +8,6 @@
 .include "M328PDEF.inc"
 .cseg
 .org 0x0000
-.def COUNTER = R20
 /******************************************************************/
 //Configuración de la pila 
 /*****************************************************************/
@@ -41,12 +40,16 @@ MAIN_LOOP:
 	SBI		TIFR0, TOV0 // Limpiar bandera de "overflow"
 	LDI		R16, 100
 	OUT		TCNT0, R16 // Volver a cargar valor inicial en TCNT0
-	INC		COUNTER
-	CPI		COUNTER, 10 // R20 = 50 after 500ms (since TCNT0 is set to 10 ms)
+	INC		R20
+	CPI		R20, 10 // R20 = 50 after 500ms (since TCNT0 is set to 10 ms)
 	BRNE	MAIN_LOOP
-	CLR		COUNTER
+	CLR		R20
 	INC		R21
-	OUT		PORTC, R21
+    CPI     R21, 0x10     ; ¿Llegó a 0x10?
+    BRNE    FIN_SUM_1     ; Si no, continuar
+    LDI     R21, 0x00     ; Si sí, reiniciar a 0
+FIN_SUM_1:
+    OUT		PORTC, R21
 	RJMP	MAIN_LOOP
 /****************************************/
 // NON-Interrupt subroutines
