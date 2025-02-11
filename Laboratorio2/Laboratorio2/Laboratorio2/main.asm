@@ -23,12 +23,13 @@ SETUP:
 	STS		CLKPR, R16
 	LDI		R16, (1 << CLKPS2)      ; Configura prescaler a 16 (16 MHz / 16 = 1 MHz)
 	STS		CLKPR, R16
-
+	/*
 	// Inicializar timer0
 	LDI		R16, (1<<CS01) | (1<<CS00)
 	OUT		TCCR0B, R16 // Setear prescaler del TIMER 0 a 64
 	LDI		R16, 100
 	OUT		TCNT0, R16 // Cargar valor inicial en TCNT0
+	*/
 
 	//PORTC y PORTD como salida e inicialmente apagado 
 	LDI		R16, 0xFF
@@ -46,12 +47,14 @@ SETUP:
 
 	//Contador iniciar en 0
 	LDI		R21, 0x00
+	LDI		R23, 0x00
 
 	//Configuración del display
 	DISPLAY_VAL:	.db		0x7E, 0x30,	0x6D, 0x79, 0x33, 0x5B, 0x5F, 0x70, 0x7F, 0x7B,	0x76, 0x1F, 0x4E, 0x3D, 0x4F, 0x47
 	//						 0	    1	  2		3	 4     5	  6     7     8		9	  A		B	  C		D	  E		F
 	LDI		ZL, LOW(DISPLAY_VAL <<1)
 	LDI		ZH, HIGH(DISPLAY_VAL <<1)
+
 MAIN:
 
 	/*IN		R16, TIFR0 // Leer registro TIMER 0 
@@ -97,7 +100,7 @@ FIN_SUM_1:
 //=====================================================================================
 SUMA:
 	ADIW	Z, 1
-	LD		R22, Z
+	LPM		R22, Z
 	INC		R23
 	CPI		R23, 0X10
 	BRNE	FIN_SUM
@@ -109,14 +112,14 @@ FIN_SUM:
 	RET
 
 RESTA:
-	LD		R24, Z
-    CPI     R24, 0x7E     ; ¿Está en 0?
+	LPM		R22, Z
+    CPI     R22, 0x7E     ; ¿Está en 0?
     BREQ    SET_MAX_1     ; Si, colocar en 0x47
     SBIW    Z, 1           ; Decrementar
     RET
 SET_MAX_1:
     ADIW	Z, 15
-	OUT		PORTD, R24
+	OUT		PORTD, R22
     RET
 	
 //=====================================================================================
@@ -137,3 +140,4 @@ SUB_DELAY3:
 	CPI		R18, 0
 	BRNE	SUB_DELAY3
 	RET
+	
