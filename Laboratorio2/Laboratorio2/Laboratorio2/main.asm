@@ -77,7 +77,7 @@ MAIN:
 	INC		R17			//Incrementa 100 ms 
 	CPI		R17, 10		//Salta si ya pasaron 100ms * 10 = 1s
 	BRNE	DISPLAY		//Si no ha pasado el segundo regresa al loop principal
-	CLR		R17
+	CLR		R17			//Resetea el contador
 	CALL	CONTADOR
 	CALL	COMPARAR
 	
@@ -91,13 +91,13 @@ DISPLAY:
 	CP		R21, R20			
 	BREQ	MAIN
 	MOV		R21, R20	//Mueve el registro actual al registro previo
-	SBIS	PINB, 1
+	SBIS	PINB, 1		
 	CALL	SUMA
 	SBIS	PINB, 0
 	CALL	RESTA
-	LPM		R22, Z
-	OUT		PORTD, R22
-	CPI		R23, 0x00
+	LPM		R22, Z		//Copia lo que está en el direccionamiento indirecto a un registro
+	OUT		PORTD, R22	//Muestro el valor en el display
+	CPI		R23, 0x00	//Esta parte sirve para que cuando el display muestre cero solo parpadee la luz
 	RJMP	MAIN
 
 CONTADOR:
@@ -111,14 +111,14 @@ FIN_SUM_T:
 
 
 COMPARAR:
-	MOV		R24, R23
-	INC		R24
-    CP      R19, R23  ; Compara R19 con R23
-    BREQ	END
+	MOV		R24, R23	//Muevo el registro del contador del display a otro para no podificar el original 
+	INC		R24			//Le aumento 1 a R24 para poder tener un delay y así encender la luz 
+    CP      R19, R24	//Compara R19 con R24
+    BREQ	END			//Salta si son iguales
 	RET
 END:
-	SBI		PIND, PD7
-	LDI		R19, 0x00
+	SBI		PIND, PD7	//Enciende la alarma (led) que está en el bit7 de PD
+	LDI		R19, 0x00	//Resetea el contador del timer0
 	OUT		PORTC, R19
     RET
 
@@ -135,20 +135,20 @@ FIN_SUM:
 	RET
 
 RESTA:
-    CPI     R23, 0x00     ; ¿Está en 0?
-    BREQ    SET_MAX	      ; Si, colocar en 0x47
+    CPI     R23, 0x00   //¿Está en 0?
+    BREQ    SET_MAX	    //Si, colocar en "F"
 	DEC		R23
-    SBIW    Z, 1          ; Decrementar
+    SBIW    Z, 1        //Decrementar
     RET
 SET_MAX:
-	LDI		R23, 0x0F
+	LDI		R23, 0x0F	//Realiza el proceso de reiniciar y aumentar para asegurar que esté en la dirección correcta
 	CALL	SET_INICIO
     ADIW	Z, 15
     RET
 	
 
 SET_INICIO:
-	LDI		ZL, LOW(DISPLAY_VAL <<1)
+	LDI		ZL, LOW(DISPLAY_VAL <<1)	//Coloca el direccionador indirecto en la posición inicial
 	LDI		ZH, HIGH(DISPLAY_VAL <<1)
 	RET
 
