@@ -25,6 +25,7 @@ START:
 //Configurar el microcontrolador (MCU)
 SETUP:
 	CLI					//Deshabilito interrupciones globales
+	/*
 	//Prescaler del oscilador
 	LDI		R16, (1 << CLKPCE)	//Habilita la escritura en CLKPR
 	STS		CLKPR, R16
@@ -36,7 +37,7 @@ SETUP:
 	OUT		TCCR0B, R16	// Setear prescaler del TIMER 0 a 1024
 	LDI		R16, 11		//Poner a 
 	OUT		TCNT0, R16	// Cargar valor inicial en TCNT0
-
+	*/
 
 	//PORTC como salida e inicialmente apagado 
 	LDI		R16, 0xFF
@@ -108,24 +109,24 @@ CONTADOR:
 ISR_BOTON:
     LDI     R17, 0x00
 
-    ; Habilitar Timer0 con prescaler 64 (aprox. 1 ms por tick con 16 MHz)
+    //Habilitar Timer0 con prescaler 64 (aprox. 1 ms por tick con 16 MHz)
     LDI     R21, (1<<CS01) | (1<<CS00)
-    OUT     TCCR0B, R21   ; Iniciar Timer0
+    OUT     TCCR0B, R21		//Iniciar Timer0
 
 CONTADOR:
-    IN      R21, TIFR0    ; Leer registro TIMER 0
-    SBRS    R21, TOV0     ; Salta si la bandera de overflow está encendida
-    RJMP    CONTADOR      ; Si está apagado, regresa al loop principal
+    IN      R21, TIFR0		//Leer registro TIMER 0
+    SBRS    R21, TOV0		//Salta si la bandera de overflow está encendida
+    RJMP    CONTADOR		//Si está apagado, regresa al loop principal
 
-    ; Limpiar bandera de desbordamiento para evitar falsas lecturas
+    //Limpiar bandera de desbordamiento para evitar falsas lecturas
     LDI     R21, (1<<TOV0)
     OUT     TIFR0, R21
 
-    ; Detener Timer0 para evitar interferencias
+    //Detener Timer0 para evitar interferencias
     CLR     R21
     OUT     TCCR0B, R21
 
-    ; Verificar si el botón sigue presionado después del debounce
+    //Verificar si el botón sigue presionado después del "anti rebote"
     SBIC    PINB, 0
     ORI     R17, 0b00000001
 
