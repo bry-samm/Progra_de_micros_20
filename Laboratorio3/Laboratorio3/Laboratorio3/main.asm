@@ -34,7 +34,7 @@ SETUP:
 	// Inicializar timer0
 	LDI		R16, (1<<CS02) | (1<<CS00)	//Configuración para el prescaler de 1024 (ver datasheet)
 	OUT		TCCR0B, R16	// Setear prescaler del TIMER 0 a 1024
-	LDI		R16, 1		//Poner a 
+	LDI		R16, 11		//Poner a 
 	OUT		TCNT0, R16	// Cargar valor inicial en TCNT0
 
 
@@ -58,7 +58,7 @@ SETUP:
 	LDI		R16, (1 << PCIE0)
 	STS		PCICR, R16
 
-
+	LDI		R20, 0x00
 	LDI		R19, 0x00
 	LDI		R18, 0x00
 	LDI		R17, 0x00
@@ -67,61 +67,72 @@ SETUP:
 	SEI
 //============================================================================
 MAIN:
-	/*CP		R20, R17
+
+	CP		R20, R17
 	BREQ	MAIN
 	MOV		R20, R17
+
 	SBRS	R17, 0
 	CALL	SUMA
 	SBRS	R17, 1
 	CALL	RESTA
-
-	SBRS	R17, 2
-	CALL	SUMA
-	SBRS	R17, 3
-	CALL	RESTA*/
-
 	OUT		PORTC, R19
 	
 	RJMP	MAIN
 
 
 //======================= RUTINAS DE INTERRUPCIÓN ==========================
+
+/*
 ISR_BOTON:
-	PUSH	R16
-	IN		R16, SREG
-	PUSH	R16
-	
+
+	LDI		R17, 0x00
+
 CONTADOR:
 	IN		R21, TIFR0	// Leer registro TIMER 0 
 	SBRS	R21, TOV0	// Salta si la bandera de overflow está encendida
 	RJMP	CONTADOR	// Si está apagado regresa al loop principal
 	
-	/*
+	
 	LDI		R17, 0x00
+
 	SBIC	PINB, 0   ; Si PB0 está en LOW (botón presionado)
 	ORI		R17, 0b00000001  ; Activar bit 0 en R17
-
-	SBIS	PINB, 0   ; Si PB0 está en LOW (botón presionado)
-	ORI		R17, 0b00000100  ; Activar bit 0 en R17
 
 	SBIC	PINB, 1   ; Si PB1 está en LOW (botón presionado)
 	ORI		R17, 0b00000010  ; Activar bit 1 en R17
 
-	SBIS	PINB, 1   ; Si PB1 está en LOW (botón presionado)
-	ORI		R17, 0b00001000  ; Activar bit 1 en R17
-	
-
-	//SBI		PINC, PD0
-	
+	RETI
 	*/
 
-	INC		R19
+ISR_BOTON:
+    LDI     R17, 0x00
 
-	POP		R16
-	OUT		SREG, R16
-	POP		R16
-	RETI
+    ; Habilitar Timer0 con prescaler 64 (aprox. 1 ms por tick con 16 MHz)
+    LDI     R21, (1<<CS01) | (1<<CS00)
+    OUT     TCCR0B, R21   ; Iniciar Timer0
 
+CONTADOR:
+    IN      R21, TIFR0    ; Leer registro TIMER 0
+    SBRS    R21, TOV0     ; Salta si la bandera de overflow está encendida
+    RJMP    CONTADOR      ; Si está apagado, regresa al loop principal
+
+    ; Limpiar bandera de desbordamiento para evitar falsas lecturas
+    LDI     R21, (1<<TOV0)
+    OUT     TIFR0, R21
+
+    ; Detener Timer0 para evitar interferencias
+    CLR     R21
+    OUT     TCCR0B, R21
+
+    ; Verificar si el botón sigue presionado después del debounce
+    SBIC    PINB, 0
+    ORI     R17, 0b00000001
+
+    SBIC    PINB, 1
+    ORI     R17, 0b00000010
+
+    RETI
 
 //====================== RUTINAS NO INTERRUPCIÓN ===========================
 SUMA:
