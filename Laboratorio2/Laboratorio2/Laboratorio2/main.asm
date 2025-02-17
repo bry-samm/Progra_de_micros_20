@@ -4,7 +4,8 @@
 ; Created: 07/02/2025
 //Encabezado 
 //Bryan Samuel Morales Paredes 23283
-// Este código es un contador binario de 4 bits que aumenta cada 100ms
+// Este código son dos contadores de 4 bits, el primero aumenta por medio del timer0 cada 100ms
+//y el segundo aumenta por medio de pushbottons
 .include "M328PDEF.inc"
 .cseg
 .org 0x0000
@@ -28,8 +29,8 @@ SETUP:
 	STS		CLKPR, R16
 
 	// Inicializar timer0
-	LDI		R16, (1<<CS02) | (1<<CS00)	//Configuración para el prescaler de 64 (ver datasheet)
-	OUT		TCCR0B, R16	// Setear prescaler del TIMER 0 a 64
+	LDI		R16, (1<<CS02) | (1<<CS00)	//Configuración para el prescaler de 1024 (ver datasheet)
+	OUT		TCCR0B, R16	// Setear prescaler del TIMER 0 a 1024
 	LDI		R16, 158
 	OUT		TCNT0, R16	// Cargar valor inicial en TCNT0
 
