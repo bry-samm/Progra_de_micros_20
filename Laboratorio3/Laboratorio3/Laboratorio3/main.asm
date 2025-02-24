@@ -66,7 +66,7 @@ SETUP:
 
 //===================== CONFIGURACIÓN INTERRUPCIONES =======================
 
-//Para el timer
+//Para el timer0
 	LDI		R16, (1 << TOIE0)
 	STS		TIMSK0, R16
 
