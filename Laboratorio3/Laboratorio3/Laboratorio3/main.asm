@@ -40,23 +40,23 @@ SETUP:
 
 	// Inicializar timer0
 	LDI		R16, (1<<CS01) | (1<<CS00)	//Configuración para el prescaler de 64 (ver datasheet)
-	OUT		TCCR0B, R16	// Setear prescaler del TIMER 0 a 64
-	LDI		R16, 100	//Poner a 100
-	OUT		TCNT0, R16	// Cargar valor inicial en TCNT0
+	OUT		TCCR0B, R16			// Setear prescaler del TIMER 0 a 64
+	LDI		R16, 100			//Poner a 100
+	OUT		TCNT0, R16			// Cargar valor inicial en TCNT0
 	
 	//PORTD y PORTC como salida e inicialmente apagado 
 	LDI		R16, 0xFF
-	OUT		DDRD, R16	//Setear puerto D como salida
+	OUT		DDRD, R16			//Setear puerto D como salida
 	OUT		DDRC, R16
 	LDI		R16, 0x00
-	OUT		PORTD, R16	//Apagar puerto D
+	OUT		PORTD, R16			//Apagar puerto D
 	OUT		PORTC, R16
 
 	//PORTB como entrada
 	LDI		R16, 0x00
-	OUT		DDRB, R16	//Setear puerto B como entrada
+	OUT		DDRB, R16			//Setear puerto B como entrada
 	LDI		R16, 0xFF
-	OUT		PORTB, R16	//Habilidar pull-up en puerto B
+	OUT		PORTB, R16			//Habilidar pull-up en puerto B
 
 	//Configuración del display
 
@@ -64,9 +64,6 @@ SETUP:
 	//						 0	    1	  2		3	 4     5	  6     7     8		9
 	CALL SET_INICIO
 
-
-
-	
 //===================== CONFIGURACIÓN INTERRUPCIONES =======================
 
 //Para el timer
@@ -94,33 +91,30 @@ SETUP:
 	LDI		R17, 0x00
 	LDI		R16, 0x00
 	
-	LPM		R23, Z
-	LPM		R25, Z
+	LPM		R23, Z				// Mostrar en el display1 0
+	LPM		R25, Z				// Mostrar en el display2 0
 
 	SEI
 //============================================================================
 MAIN:
 
-
-	OUT		PORTC, R19
-	SBRS	R22, 0
-	RJMP	CONTADOR_1
-	CBI		PORTC, PC4
-	LDI		R16, 0x00
-	OUT		PORTD, R16
-	SBI		PORTC, PC5
-	//LPM		R25, Z
-	OUT		PORTD, R25
-	RJMP	MAIN
-CONTADOR_1:
-	CBI		PORTC, PC5
+	OUT		PORTC, R19			// Muestro el valor del contador binario (botones)
+	SBRS	R22, 0				//Verifico si el bit0 del contador del timer0 es 1 ya que este bit0 se alterna constantemente
+	RJMP	CONTADOR_1			// Si el bit0 es 0 salta al segundo display
+	CBI		PORTC, PC4			// Apago el pin para el transistor del primer display
+	LDI		R16, 0x00			//Cargo un inmediato a un registro
+	OUT		PORTD, R16			//Apago todo el puerto para que no tenga el efecto fantasma 
+	SBI		PORTC, PC5			//Enciendo el pin para el transistor del segundo delay
+	OUT		PORTD, R25			//Muestro el valor del display (R25 está en la subrutina suma)
+	RJMP	MAIN				//Regresa al loop
+CONTADOR_1:									
+	CBI		PORTC, PC5			//Esta parte tiene la misma lógica solo que para encender el display 1 y alternar el valor de los pines para los transistores
 	LDI		R16, 0x00
 	OUT		PORTD, R16
 	SBI		PORTC, PC4
-	//LPM		R23, Z
 	OUT		PORTD, R23
 
-	OUT		PORTC, R19
+	OUT		PORTC, R19			// Muestro el valor del contador binario (botones)
 	RJMP	MAIN
 
 //================================================= RUTINAS NO INTERRUPCIÓN ==================================================================
@@ -130,47 +124,47 @@ SET_INICIO:
 	RET
 
 SUMA:
-    CALL    SET_INICIO          ; Reiniciar el puntero Z al inicio de la tabla
-    LDI     R16, 0x00           ; Inicializar R16 para usarlo como índice
+    CALL    SET_INICIO			//Reiniciar el puntero Z al inicio de la tabla
+    LDI     R16, 0x00			//Inicializar R16 para usarlo como índice
 
 LOOP1:
-    CP      R16, R21            ; Comparar el índice con el valor de las unidades
-    BREQ    UNIDADES_ENCONTRADAS ; Si coincide, salir del bucle
-    INC     R16                 ; Incrementar el índice
-    ADIW    Z, 1                ; Mover el puntero Z al siguiente valor en la tabla
-    RJMP    LOOP1               ; Repetir el bucle
+    CP      R16, R21			//Comparar el índice con el valor de las unidades
+    BREQ    UNIDADES_ENCONTRADAS//Si coincide, salir del bucle
+    INC     R16					//Incrementar el índice
+    ADIW    Z, 1				//Mover el puntero Z al siguiente valor en la tabla
+    RJMP    LOOP1				//Repetir el bucle
 
 UNIDADES_ENCONTRADAS:
-    LPM     R23, Z              ; Cargar el valor de la tabla en R23 (unidades)
+    LPM     R23, Z              //Cargar el valor de la tabla en R23 (unidades)
     
-    CPI     R21, 0x0A           ; ¿Las unidades están en 9?
-    BRNE    INCREMENTAR_UNIDADES ; Si no están en 9, solo incrementar
+    CPI     R21, 0x0A           //¿Las unidades están en 9?
+    BRNE    INCREMENTAR_UNIDADES //Si no están en 9, solo incrementar
 
     ; Si estaban en 9, reiniciar unidades y aumentar decenas
-    LDI     R21, 0x00           ; Reiniciar el contador de unidades
-    CALL    SET_INICIO          ; Reiniciar el puntero Z al inicio de la tabla
-    LPM     R23, Z              ; Cargar el valor de 0 en R23 (unidades)
-    INC     R24                 ; Incrementar el contador de decenas (justo después del reinicio)
-    CPI     R24, 0x0A           ; ¿Llegó a 10?
-    BRNE    ACTUALIZAR_DECENAS  ; Si no, actualizar el valor de las decenas
+    LDI     R21, 0x00           //Reiniciar el contador de unidades
+    CALL    SET_INICIO          //Reiniciar el puntero Z al inicio de la tabla
+    LPM     R23, Z              //Cargar el valor de 0 en R23 (unidades)
+    INC     R24                 //Incrementar el contador de decenas
+    CPI     R24, 0x06           //¿Llegó a 6? para hacer los 60s
+    BRNE    ACTUALIZAR_DECENAS  //Si no, actualizar el valor de las decenas
     ; Si llegó a 10, reiniciar decenas
-    LDI     R24, 0x00           ; Reiniciar el contador de decenas
+    LDI     R24, 0x00           //Reiniciar el contador de decenas
 
 ACTUALIZAR_DECENAS:
-    CALL    SET_INICIO          ; Reiniciar el puntero Z al inicio de la tabla
-    LDI     R16, 0x00           ; Inicializar R16 para usarlo como índice
+    CALL    SET_INICIO          //Reiniciar el puntero Z al inicio de la tabla
+    LDI     R16, 0x00           //Inicializar R16 para usarlo como índice (el que coloca en su valor original el puntero para poder aumentarlo luego)
 LOOP2:
-    CP      R16, R24            ; Comparar el índice con el valor de las decenas
-    BREQ    DECENAS_ENCONTRADAS ; Si coincide, salir del bucle
-    INC     R16                 ; Incrementar el índice
-    ADIW    Z, 1                ; Mover el puntero Z al siguiente valor en la tabla
-    RJMP    LOOP2               ; Repetir el bucle
+    CP      R16, R24            //Comparar si R16 con el valor de las decenas
+    BREQ    DECENAS_ENCONTRADAS //Si coincide, salir del bucle
+    INC     R16                 //Incrementar R16 y el puntero 
+    ADIW    Z, 1                //Mover el puntero Z al siguiente valor en la tabla
+    RJMP    LOOP2               //Repetir el bucle hasta que alcance el valor
 
 DECENAS_ENCONTRADAS:
-    LPM     R25, Z              ; Cargar el valor de la tabla en R25 (decenas)
+    LPM     R25, Z              //Cargar el valor de la tabla en R25 (decenas)
 
 INCREMENTAR_UNIDADES:
-    INC     R21                 ; Solo incrementar las unidades si no estaban en 9
+    INC     R21                 //Solo incrementar las unidades si no estaban en 9
 
 FIN_SUM:
     RET
@@ -227,18 +221,14 @@ ISR_TIMER0:
 	IN		R16,  SREG
 	PUSH	R16
 
-	LDI		R16, 100	//Poner a 100
-	OUT		TCNT0, R16	// Cargar valor inicial en TCNT0
+	LDI		R16, 100			//Poner a 100
+	OUT		TCNT0, R16			// Cargar valor inicial en TCNT0
 	
-	INC		R22
-	CPI		R22, 100
-	BRNE	FIN_SUM_TIMER
-	CALL	SUMA
-	//LPM		R23, Z
-
-	//OUT		PORTD, R23
-	LDI		R22, 0x00
-
+	INC		R22					//Incrementar un registro para llegar al segundo
+	CPI		R22, 100			// R22 tiene que llegar a 100 ya que 10ms * 100 = 1s
+	BRNE	FIN_SUM_TIMER		// Si no llega termina la interrupción
+	CALL	SUMA				//Si es 100, llamar la función suma para el display
+	LDI		R22, 0x00			//Resetea el contador
 
 FIN_SUM_TIMER:
 
@@ -247,25 +237,25 @@ FIN_SUM_TIMER:
 	POP		R16
 	RETI
 
+//Interrupción de botón 
 ISR_BOTON:
     PUSH	R16
     IN		R16, SREG
     PUSH	R16
 
-    // Verificar si el botón en PB0 fue presionado (disminuir contador)
-    SBIC	PINB, PB0
-    RJMP	CHECK_PB1  // Si no está presionado, verificar el otro botón
-    CALL	RESTA      // Llamar a la rutina para disminuir el contador
+    SBIS	PINB, PB0			// Si PB0 está presionado restar
+    CALL	RESTA				// Llamar a la rutina para disminuir el contador
+    SBIS	PINB, PB1			// Si PB1 está presionado sumar
+    CALL	SUMA_BOTON			// Llamar a la rutina para aumentar el contador
 
-CHECK_PB1:
-    // Verificar si el botón en PB1 fue presionado (aumentar contador)
-    SBIC	PINB, PB1
-    RJMP	FIN_ISR_BOTON  // Si no está presionado, salir de la ISR
-    CALL	SUMA_BOTON     // Llamar a la rutina para aumentar el contador
+	// Pequeño retardo para antirrebote (de igual forma el circuito físico tiene un anti rebote físico)
+	//Resistencia de 220 ohm y un capacitor cerámico de 10nF
+    LDI     R16, 10             // Cargar un valor pequeño para el retardo
+DELAY_LOOP:
+    DEC     R16                 // Decrementar el contador de retardo
+    BRNE    DELAY_LOOP          // Repetir hasta que el contador llegue a cero
 
-FIN_ISR_BOTON:
     POP		R16
     OUT		SREG, R16
     POP		R16
     RETI
-	
