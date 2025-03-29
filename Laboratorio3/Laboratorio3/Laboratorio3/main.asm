@@ -197,6 +197,7 @@ FIN_SUM:
     RET*/
 
 
+
 SUMA_BOTON:
     INC     R19			//Incrementar R19
     CPI     R19, 0x10	//¿Llegó a 0x10?
@@ -225,7 +226,7 @@ ISR_TIMER0:
 	OUT		TCNT0, R16			// Cargar valor inicial en TCNT0
 	
 	INC		R22					//Incrementar un registro para llegar al segundo
-	CPI		R22, 100			// R22 tiene que llegar a 100 ya que 10ms * 100 = 1s
+	CPI		R22, 50			// R22 tiene que llegar a 100 ya que 10ms * 100 = 1s
 	BRNE	FIN_SUM_TIMER		// Si no llega termina la interrupción
 	CALL	SUMA				//Si es 100, llamar la función suma para el display
 	LDI		R22, 0x00			//Resetea el contador
@@ -248,13 +249,14 @@ ISR_BOTON:
     SBIS	PINB, PB1			// Si PB1 está presionado sumar
     CALL	SUMA_BOTON			// Llamar a la rutina para aumentar el contador
 
+	/*
 	// Pequeño retardo para antirrebote (de igual forma el circuito físico tiene un anti rebote físico)
 	//Resistencia de 220 ohm y un capacitor cerámico de 10nF
     LDI     R16, 10             // Cargar un valor pequeño para el retardo
 DELAY_LOOP:
     DEC     R16                 // Decrementar el contador de retardo
     BRNE    DELAY_LOOP          // Repetir hasta que el contador llegue a cero
-
+	*/
     POP		R16
     OUT		SREG, R16
     POP		R16
