@@ -58,7 +58,7 @@ void SUMA_BOTON(void);void initTMR0();void initADC();/**********************
 }void RESTA_BOTON(void){	contador_leds--;	PORTD = contador_leds;			//Decrementa el valor de PORTD}void SUMA_BOTON(void) {
 	contador_leds++;
 	PORTD = contador_leds;			//Incrementa el valor de PORTD
-}void initTMR0(){	TCCR0A  = 0;	TCCR0B  |= (1 << CS01) | (1 << CS00);	TCNT0   = 200;	TIMSK0  = (1 << TOIE0);}void initADC(){
+}void initTMR0(){	TCCR0A  = 0;	TCCR0B  |= (1 << CS01) | (1 << CS00); 	TCNT0   = 200;	TIMSK0  = (1 << TOIE0);}void initADC(){
 	ADMUX = 0;
 	ADMUX	|= (1<<REFS0);  // Se ponen los 5V como referencia
 
