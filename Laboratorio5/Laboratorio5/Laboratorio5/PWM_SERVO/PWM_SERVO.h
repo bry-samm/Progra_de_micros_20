@@ -11,7 +11,7 @@
 
 // Servo limit 
 #define SERVO_MIN  9   // OCR0A for 0° (1ms of pulse)
-#define SERVO_MAX  35   // OCR0A for 180° (2ms of pulse)
+#define SERVO_MAX  36   // OCR0A for 180° (2ms of pulse)
 
 //************************************************************************************
 // Function prototypes
