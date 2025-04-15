@@ -1,7 +1,10 @@
 /*
- * PWM_SERVO.c
+ * PWM2_SERVO.c
  *
- * Created: 5/04/2025 10:59:03
+ * Created: 7/04/2025 16:45:32
  *  Author: Bryan Morales
  */ 
+
 #include <avr/io.h>
+
+
