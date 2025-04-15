@@ -3,21 +3,28 @@
  * 
  * Created: 4/04/2025 19:02:23
  * Author: Bryan Morales
- * Description: Movimiento de dos servos por medio de PWM y atenuar la intensidad de un led con una señal PWM manual, todos haciendo uso de un ADC (potenciómetro)
+ * Description:
  */
 //************************************************************************************
 
-// Encabezado (librerías)
+// Encabezado (librerÃ­as)
 #define	F_CPU 16000000
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "PWM_SERVO/PWM_SERVO.h"
-#include "PWM2_SERVO/PWM2_SERVO.h"
-#include "MANUAL_PWM/MANUAL_PWM.h"
+//#include "PWM_SERVO/PWM_SERVO.h"
+//#include "PWM2_SERVO/PWM2_SERVO.h"
 
 uint8_t		multiplexar_ADC = 0;
 uint8_t		ADC_value;
 uint8_t		pwm_counter;
+
+//Servo limit 2
+#define SERVO_MIN_2  9   // OCR0A for 0Â° (1ms of pulse)
+#define SERVO_MAX_2  36
+
+//Servo limit 1
+#define SERVO_MIN  9   // OCR0A for 0Â° (1ms of pulse)
+#define SERVO_MAX  36   // OCR0A for 180Â° (2ms of pulse)
 
 //Manual PWM
 uint8_t		manual_PWM;
@@ -26,6 +33,13 @@ uint8_t		manual_PWM;
 //************************************************************************************
 // Function prototypes
 void setup();
+
+void initPWM2();
+
+void initPWM();
+void initADC();
+
+void initTM0();
 //************************************************************************************
 // Main Function
 int main(void)
@@ -51,6 +65,59 @@ void setup(){
 	initTM0();
 	
 	sei();
+}
+
+
+void initPWM2(){
+	DDRB |= (1 << DDB3); // PB3 as output (OC2A)
+	TCCR2A = 0;
+	TCCR2A |= (1 << COM2A1); // Set as non inverted
+	TCCR2A |= (1 << WGM21) | (1 << WGM20); // Set mode 3 => Fast PWM and top = 0xFF
+	
+	TCCR2B = 0;
+	TCCR2B |= (1 << CS22); // Prescaler 64
+}
+
+
+void initPWM(){
+	DDRB |= (1 << DDB1); // PB1 as output (OC1A)
+	TCCR1A = 0;
+	TCCR1A |= (1 << COM1A1); // Set as non inverted
+	TCCR1A |= (1 << WGM10); // Set mode 5 => Fast PWM and top = 0xFF
+	
+	
+	TCCR1B = 0;
+	TCCR1B |= (1 << WGM12);
+	TCCR1B |= (1 << CS11) | (1 << CS10); // Prescaler 64
+}
+
+void initADC(){
+	ADMUX = 0;
+	ADMUX	|= (1<<REFS0);  // 5V as reference
+
+	ADMUX	|= (1 << ADLAR); // Left justification
+	
+	ADMUX	|= (1 << MUX1) | (1<< MUX0); //Select ADC3 to have a start value
+	
+	ADCSRA	= 0;
+	ADCSRA	|= (1 << ADPS1) | (1 << ADPS0); // Sampling frequency = 125kHz "sampling = muestreo"
+	ADCSRA	|= (1 << ADIE); // Enable interruption
+	ADCSRA	|= (1 << ADEN); // Enable ADC
+	
+	
+	ADCSRA	|= (1<< ADSC); // Start conversion
+}
+
+void initTM0(){
+	
+	DDRD |= (1 << PORTD2); // PD6 como salida (LED)
+	
+	TCCR0A = 0; // Modo normal
+	TCCR0B = (1 << CS00); // Prescaler 1
+
+
+	TIMSK0 = (1 << TOIE0); // Habilitar interrupciÃ³n overflow
+	
 }
 
 //************************************************************************************
@@ -91,7 +158,7 @@ ISR(ADC_vect){
 	
 	// Convert an angle using a rule of three
 	//OCR0A determinate the duty cycle, the values of SERVO_MIN and SERVO_MAX are explained in library PWM_SERVO.h
-	//Converts an angle (0° to 180°) into a value that must be entered into OCR0A so that the servo motor receives the correct pulse and moves to that angle.
+	//Converts an angle (0Â° to 180Â°) into a value that must be entered into OCR0A so that the servo motor receives the correct pulse and moves to that angle.
 	
 	OCR1A = SERVO_MIN + (angle * (SERVO_MAX - SERVO_MIN) / 180); 
 	
@@ -111,3 +178,5 @@ ISR(TIMER0_OVF_vect){ // Is executed when occurs overflow
 		pwm_counter = 0;
 	}
 }
+
+

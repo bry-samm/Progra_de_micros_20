@@ -123,6 +123,12 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="MANUAL_PWM\MANUAL_PWM.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="MANUAL_PWM\MANUAL_PWM.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="PWM2_SERVO\PWM2_SERVO.c">
       <SubType>compile</SubType>
     </Compile>
@@ -137,6 +143,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="MANUAL_PWM" />
     <Folder Include="PWM2_SERVO" />
     <Folder Include="PWM_SERVO" />
   </ItemGroup>

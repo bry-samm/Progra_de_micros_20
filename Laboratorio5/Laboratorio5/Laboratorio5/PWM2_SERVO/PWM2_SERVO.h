@@ -9,6 +9,10 @@
 #ifndef PWM2_SERVO_H_
 #define PWM2_SERVO_H_
 
+//Servo limit 2
+#define SERVO_MIN_2  9   // OCR0A for 0° (1ms of pulse)
+#define SERVO_MAX_2  36
 
+void initPWM2();
 
 #endif /* PWM2_SERVO_H_ */
