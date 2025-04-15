@@ -27,7 +27,6 @@ uint8_t		pwm_counter;
 #define SERVO_MAX  36   // OCR0A for 180° (2ms of pulse)
 
 //Manual PWM
-uint8_t		estado_pwm;
 uint8_t		manual_PWM;
 #define PWM_TOP 20 // Periodo total = 2000 us = 2ms = 500Hz aprox (ajustable)
 
@@ -98,8 +97,7 @@ void initADC(){
 
 	ADMUX	|= (1 << ADLAR); // Left justification
 	
-	ADMUX	|= (1 << MUX1) | (1<< MUX0); //Select ADC3
-	//ADMUX	|= (1 << MUX2); //Select ADC4
+	ADMUX	|= (1 << MUX1) | (1<< MUX0); //Select ADC3 to have a start value
 	
 	ADCSRA	= 0;
 	ADCSRA	|= (1 << ADPS1) | (1 << ADPS0); // Sampling frequency = 125kHz "sampling = muestreo"
@@ -142,7 +140,7 @@ ISR(ADC_vect){
 		ADMUX = (ADMUX & 0xF0) | 5; // I do not write ADMUX |= (ADMUX & 0xF0) | 3; because y want to erase de prevous configuration of the MUX
 	}
 	else if (multiplexar_ADC == 5){
-		manual_PWM = (ADC_value * PWM_TOP) / 255;
+		manual_PWM = (ADC_value * PWM_TOP) / 255; // Rescale value 
 
 		//manual_PWM = ADC_value; // ADC de 0-255 directamente como duty
 		ADMUX = (ADMUX & 0xF0) | 3; // Vuelve a ADC3
@@ -168,15 +166,15 @@ ISR(ADC_vect){
 	
 */
 
-ISR(TIMER0_OVF_vect){
-	pwm_counter++;
+ISR(TIMER0_OVF_vect){ // Is executed when occurs overflow
+	pwm_counter++; // Increase counter
 	if (pwm_counter < manual_PWM){
 		PORTD |= (1 << PORTD2);  // LED ON
 	}
 	else{
 		PORTD &= ~(1 << PORTD2); // LED OFF
 	}
-	if (pwm_counter >= PWM_TOP){
+	if (pwm_counter >= PWM_TOP){ // counter reset if counter have the value of PWM_TOP
 		pwm_counter = 0;
 	}
 }
