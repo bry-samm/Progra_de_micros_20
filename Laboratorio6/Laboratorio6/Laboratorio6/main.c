@@ -3,7 +3,9 @@
  * 
  * Created: 14/04/2025 23:31:09
  * Author: Bryan Morales
- * Description:
+ * Description: Envía una cadena de caracteres usando la comunicación serial, se muestra un menú en la hiperterminal donde se puede 
+ * elegir si se quiere leer un valor de potenciómetro y se muestra en la terminal junto con leds de 8 bits y la segunda opción es
+ * ingresar un caracter para mostrarlo en las leds de 8 bits en formato ascii
  */
 //************************************************************************************
 // Encabezado (librerías)
