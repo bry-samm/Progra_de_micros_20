@@ -151,39 +151,45 @@ ISR(USART_RX_vect){
 
 ISR(USART_RX_vect){
 	char recibido = UDR0;
+
+	// Ignorar salto de línea y carriage return
+	if (recibido == '\n' || recibido == '\r') return;
+	//Maquina de estados finitos, para saber si está en la opción de menú o de ingresar valor ascii
 	if (estado == 0){
 		if(recibido == '1'){
 			cadena_texto("\n Valor potenciometro: ");
-			enviar_numero(lectura_ADC);
+			enviar_numero(lectura_ADC);		//por medio de la función convierte el valor ascii a número decimal
 			cadena_texto("\n");
 			cadena_texto("\n");
 			
-			uint8_t lectura_ADC_B = ((lectura_ADC &  0b11000000) >> 6) ;
-			uint8_t lectura_ADC_D = (lectura_ADC << 2);
-			PORTB = lectura_ADC_B;   // Show ASCII value in PORTB
-			uint8_t temporal_ADC = PORTD & 0x03;
+			//Esta parte sirve para desplegar el número en las leds de 8 bits
+			uint8_t lectura_ADC_B = ((lectura_ADC &  0b11000000) >> 6); //Hace una máscara de los últimos dos bits para lueogo mostrarlos en PORTD
+			uint8_t lectura_ADC_D = (lectura_ADC << 2); // Corre dos bits a la izquierda para no interrumpir TX y RX
+			PORTB = lectura_ADC_B;
+			uint8_t temporal_ADC = PORTD & 0x03; // Esta variable evita que se pierda el valor de TX o RX cuando se carga el valor a los leds
 			PORTD = lectura_ADC_D | temporal_ADC;
-			
+
 			mostrar_menu();
-		} else if (recibido == '2'){
+			} else if (recibido == '2'){
 			cadena_texto("\n Ingrese caractér, finalize con #");
 			estado = 1;
-		} else {
+			} else {
 			cadena_texto("\n Entrada no válida \n");
 			cadena_texto("\n");
 			mostrar_menu();
-	}
+		}
+		// Segundo estado
 		} else if (estado == 1){
-		if (recibido == '#'){
+		if (recibido == '#'){ // Si se recibe un # el programa finaliza y muestra el menú
 			cadena_texto("\n Finalizando \n");
 			cadena_texto("\n");
 			estado = 0;
 			mostrar_menu();
-		} else {
+			} else {
 			writeChar(recibido);
-			char recibido_B = ((recibido &  0b11000000) >> 6) ;
+			char recibido_B = ((recibido &  0b11000000) >> 6);
 			char recibido_D = (recibido << 2);
-			PORTB = recibido_B;   // Show ASCII value in PORTB
+			PORTB = recibido_B;
 			uint8_t temporal = PORTD & 0x03;
 			PORTD = recibido_D | temporal;
 		}
